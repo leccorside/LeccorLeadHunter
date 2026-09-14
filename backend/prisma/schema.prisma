@@ -1,0 +1,279 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStatus {
+  NOVO
+  NAO_CONTATADO
+  CONTATADO
+  RESPONDEU
+  INTERESSADO
+  NEGOCIACAO
+  CLIENTE
+  SEM_INTERESSE
+  FOLLOW_UP
+  ARQUIVADO
+}
+
+enum WhatsAppStatus {
+  UNKNOWN
+  VERIFIED
+  NOT_FOUND
+}
+
+enum SearchStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ContactType {
+  WHATSAPP
+  EMAIL
+  PHONE
+  IN_PERSON
+}
+
+enum FollowUpStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model Lead {
+  id               String          @id @default(uuid())
+  provider         String          @default("GOOGLE_PLACES")
+  providerPlaceId  String?
+  name             String
+  tradeName        String?
+  categoryId       String?
+  category         Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  phone            String?
+  normalizedPhone  String?
+  whatsapp         String?
+  whatsappStatus   WhatsAppStatus  @default(UNKNOWN)
+  email            String?
+  website          String?
+  hasWebsite       Boolean         @default(false)
+  address          String?
+  neighborhood     String?
+  city             String?
+  state            String?
+  country          String?         @default("BR")
+  postalCode       String?
+  latitude         Decimal?        @db.Decimal(10, 7)
+  longitude        Decimal?        @db.Decimal(10, 7)
+  googleMapsUrl    String?
+  rating           Decimal?        @db.Decimal(3, 2)
+  reviewCount      Int?            @default(0)
+  openingHours     String?
+  businessStatus   String?
+  description      String?
+  instagram        String?
+  facebook         String?
+  linkedin         String?
+  source           String?         @default("GOOGLE_PLACES")
+  score            Int             @default(0)
+  status           LeadStatus      @default(NOVO)
+  favorite         Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  lastCheckedAt    DateTime?
+
+  searchResults    SearchResult[]
+  contacts         Contact[]
+  notes            LeadNote[]
+  history          LeadHistory[]
+  followUps        FollowUp[]
+  websiteAnalysis  WebsiteAnalysis?
+
+  @@index([provider, providerPlaceId])
+  @@index([normalizedPhone])
+  @@index([city])
+  @@index([state])
+  @@index([categoryId])
+  @@index([status])
+  @@index([score])
+  @@index([hasWebsite])
+  @@index([whatsappStatus])
+  @@index([createdAt])
+}
+
+model Category {
+  id               String            @id @default(uuid())
+  name             String            @unique
+  slug             String            @unique
+  icon             String?
+  isCustom         Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  leads            Lead[]
+  searches         Search[]
+  messageTemplates MessageTemplate[]
+}
+
+model Search {
+  id               String          @id @default(uuid())
+  provider         String          @default("GOOGLE_PLACES")
+  country          String          @default("BR")
+  state            String
+  city             String
+  categoryId       String?
+  category         Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  radiusKm         Int             @default(10)
+  maxResults       Int             @default(50)
+  filtersJson      Json?
+  status           SearchStatus    @default(PENDING)
+  totalFound       Int             @default(0)
+  processedCount   Int             @default(0)
+  newLeadsCount    Int             @default(0)
+  duplicateCount   Int             @default(0)
+  noPhoneCount     Int             @default(0)
+  whatsappCount    Int             @default(0)
+  error            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  completedAt      DateTime?
+
+  results          SearchResult[]
+}
+
+model SearchResult {
+  id          String   @id @default(uuid())
+  searchId    String
+  search      Search   @relation(fields: [searchId], references: [id], onDelete: Cascade)
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  isDuplicate Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([searchId])
+  @@index([leadId])
+}
+
+model Campaign {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  filtersJson     Json?
+  totalFound      Int      @default(0)
+  totalContacted  Int      @default(0)
+  totalResponded  Int      @default(0)
+  totalConverted  Int      @default(0)
+  status          String   @default("ACTIVE")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Contact {
+  id                String           @id @default(uuid())
+  leadId            String
+  lead              Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type              ContactType      @default(WHATSAPP)
+  messageTemplateId String?
+  messageTemplate   MessageTemplate? @relation(fields: [messageTemplateId], references: [id], onDelete: SetNull)
+  messageText       String
+  sentAt            DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+
+  @@index([leadId])
+}
+
+model MessageTemplate {
+  id          String    @id @default(uuid())
+  name        String
+  content     String
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  contacts    Contact[]
+}
+
+model LeadNote {
+  id        String   @id @default(uuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  note      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([leadId])
+}
+
+model LeadHistory {
+  id          String   @id @default(uuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  action      String
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model FollowUp {
+  id           String         @id @default(uuid())
+  leadId       String
+  lead         Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  scheduledFor DateTime
+  reason       String
+  status       FollowUpStatus @default(PENDING)
+  completedAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([leadId])
+  @@index([scheduledFor])
+  @@index([status])
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  group       String   @default("GENERAL")
+  updatedAt   DateTime @updatedAt
+}
+
+model WebsiteAnalysis {
+  id                 String   @id @default(uuid())
+  leadId             String   @unique
+  lead               Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  isReachable        Boolean  @default(false)
+  isHttps            Boolean  @default(false)
+  statusCode         Int?
+  responseTimeMs     Int?
+  hasTitle           Boolean  @default(false)
+  title              String?
+  hasMetaDescription Boolean  @default(false)
+  metaDescription    String?
+  hasViewport        Boolean  @default(false)
+  score              Int      @default(0)
+  analyzedAt         DateTime @default(now())
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  city      String
+  state     String
+  country   String   @default("BR")
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  createdAt DateTime @default(now())
+
+  @@unique([city, state, country])
+}
