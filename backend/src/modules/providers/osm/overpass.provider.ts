@@ -110,11 +110,37 @@ export class OverpassProvider implements ISearchProvider {
               .replace(/[^a-z0-9]/g, '')}.com.br`
           : undefined;
 
+        // Determina nome amigável da categoria a partir do termo pesquisado ou tipo
+        const termCategoryMap: Record<string, string> = {
+          restaurante: 'Restaurantes',
+          hotel: 'Hotéis',
+          loja: 'Lojas',
+          supermercado: 'Mercados',
+          bar: 'Bares',
+          oficina: 'Oficinas',
+          academia: 'Academias',
+          farmacia: 'Farmácias',
+          dentista: 'Dentistas',
+          clinica: 'Clínicas',
+          consultorio: 'Clínicas',
+          advogado: 'Advogados',
+          cabeleireiro: 'Salões de beleza',
+          barbearia: 'Barbearias',
+          pousada: 'Pousadas',
+          pet: 'Pet Shops',
+          veterinario: 'Veterinários',
+        };
+
+        const resolvedCategoryName =
+          (query.category && query.category !== 'Todas as categorias')
+            ? query.category
+            : (termCategoryMap[term] || p.type || 'Comércio Local');
+
         results.push({
           provider: this.name,
           providerPlaceId: `osm_${p.osm_type || 'node'}_${p.osm_id || p.place_id}`,
           name: p.name,
-          category: query.category || p.type || 'Comércio Local',
+          category: resolvedCategoryName,
           phone,
           website,
           hasWebsite: !!website,

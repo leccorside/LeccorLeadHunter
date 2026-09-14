@@ -226,6 +226,29 @@ export class SearchProcessor extends WorkerHost {
           rating: raw.rating,
         });
 
+        // Determinar o categoryId correto para o lead
+        let targetCategoryId = dto.categoryId || null;
+        if (raw.category) {
+          const catSlug = raw.category
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]/g, '-');
+
+          const matchedCat = await this.prisma.category.findFirst({
+            where: {
+              OR: [
+                { slug: catSlug },
+                { name: { equals: raw.category, mode: 'insensitive' } },
+              ],
+            },
+          });
+
+          if (matchedCat) {
+            targetCategoryId = matchedCat.id;
+          }
+        }
+
         // 5. Salvar Lead no Banco de Dados
         const createdLead = await this.prisma.lead.create({
           data: {
@@ -233,7 +256,7 @@ export class SearchProcessor extends WorkerHost {
             providerPlaceId: raw.providerPlaceId,
             name: raw.name,
             tradeName: raw.tradeName,
-            categoryId: dto.categoryId || null,
+            categoryId: targetCategoryId,
             phone: raw.phone,
             normalizedPhone: phoneNorm.isValid ? phoneNorm.e164 : null,
             whatsapp: phoneNorm.isMobile ? phoneNorm.e164 : null,
