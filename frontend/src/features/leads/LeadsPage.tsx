@@ -292,7 +292,7 @@ export const LeadsPage: React.FC = () => {
                 <th className="p-4">Cidade</th>
                 <th className="p-4">Telefone</th>
                 <th className="p-4">WhatsApp</th>
-                <th className="p-4">Google Maps</th>
+                <th className="p-4">Link Google</th>
                 <th className="p-4">Site</th>
                 <th className="p-4">Avaliações</th>
                 <th className="p-4">Score</th>
@@ -370,7 +370,7 @@ export const LeadsPage: React.FC = () => {
                       />
                     </td>
 
-                    {/* Google Maps */}
+                    {/* Google da Empresa */}
                     <td className="p-4 whitespace-nowrap">
                       {(() => {
                         const googleUrl =
@@ -384,12 +384,14 @@ export const LeadsPage: React.FC = () => {
                             href={googleUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-rose-700 dark:text-rose-300 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900/50 transition-colors shadow-2xs"
-                            title={`Abrir ${lead.name} no Google Maps`}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-900/50 transition-colors shadow-2xs group"
+                            title={`Ver perfil e compartilhar ${lead.name} no Google`}
                           >
-                            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                            <span>Ver no Maps</span>
-                            <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0" />
+                            <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
+                            </svg>
+                            <span>Google Empresa</span>
+                            <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0 group-hover:translate-x-0.5 transition-transform" />
                           </a>
                         );
                       })()}
