@@ -56,7 +56,7 @@ export class OverpassProvider implements ISearchProvider {
         const searchQuery = `${cleanCity} ${term}`;
         const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           searchQuery,
-        )}&format=json&limit=${Math.min(25, maxResults - results.length)}&addressdetails=1`;
+        )}&format=json&limit=${Math.min(25, maxResults - results.length)}&addressdetails=1&extratags=1`;
 
         try {
           const res = await axios.get(searchUrl, {
@@ -85,30 +85,31 @@ export class OverpassProvider implements ISearchProvider {
           .filter(Boolean)
           .join(', ');
 
-        // Extrai telefone real público de tags do OpenStreetMap se existente
+        // Extrai telefone real público de tags do OpenStreetMap (address ou extratags)
+        const extratags = p.extratags || {};
         const realPhone =
+          extratags.phone ||
+          extratags['contact:phone'] ||
+          extratags['contact:whatsapp'] ||
+          extratags['contact:mobile'] ||
+          extratags.telephone ||
           addr.phone ||
           addr['contact:phone'] ||
           addr['contact:mobile'] ||
           addr['contact:whatsapp'] ||
-          (p.extratags &&
-            (p.extratags.phone ||
-              p.extratags['contact:phone'] ||
-              p.extratags['contact:mobile'] ||
-              p.extratags['contact:whatsapp'])) ||
           null;
 
         const phone = realPhone ? String(realPhone).trim() : null;
 
-        // Chance de ter site ou sem site (para testar o score de prospecção)
-        const hasSite = Math.random() > 0.65;
-        const website = hasSite
-          ? `https://www.${p.name
-              .toLowerCase()
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .replace(/[^a-z0-9]/g, '')}.com.br`
-          : undefined;
+        // Extrai website real da empresa se cadastrado no mapa
+        const realWebsite =
+          extratags.website ||
+          extratags['contact:website'] ||
+          extratags.url ||
+          addr.website ||
+          null;
+
+        const website = realWebsite ? String(realWebsite).trim() : undefined;
 
         // Determina nome amigável da categoria a partir do termo pesquisado ou tipo
         const termCategoryMap: Record<string, string> = {
