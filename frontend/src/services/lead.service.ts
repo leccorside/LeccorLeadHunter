@@ -48,6 +48,10 @@ export const leadService = {
     await api.delete(`/leads/${id}`);
   },
 
+  async clearAllLeads(): Promise<void> {
+    await api.delete('/leads/batch/clear-all');
+  },
+
   async getKanban(): Promise<Record<LeadStatus, Lead[]>> {
     const res: any = await api.get('/leads/kanban');
     return res.data || res;

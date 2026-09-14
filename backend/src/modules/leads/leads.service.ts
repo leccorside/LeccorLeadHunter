@@ -252,6 +252,10 @@ export class LeadsService {
     return this.prisma.lead.delete({ where: { id } });
   }
 
+  async clearAll() {
+    return this.prisma.lead.deleteMany();
+  }
+
   async addNote(leadId: string, note: string) {
     await this.findOne(leadId);
     const createdNote = await this.prisma.leadNote.create({

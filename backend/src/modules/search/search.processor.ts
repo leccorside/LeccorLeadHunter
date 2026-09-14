@@ -126,12 +126,12 @@ export class SearchProcessor extends WorkerHost {
         // Normalização de telefone
         const phoneNorm = normalizePhone(raw.phone);
 
-        // Verificação WhatsApp
-        let whatsappStatus: WhatsAppStatus = WhatsAppStatus.UNKNOWN;
+        // Verificação WhatsApp: por padrão NOT_FOUND a menos que telefone seja válido
+        let whatsappStatus: WhatsAppStatus = WhatsAppStatus.NOT_FOUND;
         if (phoneNorm.isValid) {
           const verification = await this.whatsappVerifier.verify(phoneNorm.digits);
           whatsappStatus = verification.status;
-          if (phoneNorm.isMobile) {
+          if (whatsappStatus !== WhatsAppStatus.NOT_FOUND && phoneNorm.isMobile) {
             whatsappCount++;
           }
         }

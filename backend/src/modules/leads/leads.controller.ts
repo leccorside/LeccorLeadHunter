@@ -49,6 +49,12 @@ export class LeadsController {
     return this.leadsService.update(id, updateLeadDto);
   }
 
+  @Delete('batch/clear-all')
+  @ApiOperation({ summary: 'Limpar todos os leads cadastrados' })
+  clearAll() {
+    return this.leadsService.clearAll();
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Remover um lead do banco de dados' })
   remove(@Param('id') id: string) {

@@ -85,13 +85,20 @@ export class OverpassProvider implements ISearchProvider {
           .filter(Boolean)
           .join(', ');
 
-        // Simula DDD da região para números de prospecção quando o OSM não contém o telefone público
-        const phone =
+        // Extrai telefone real público de tags do OpenStreetMap se existente
+        const realPhone =
           addr.phone ||
           addr['contact:phone'] ||
-          `(${cleanCity.toLowerCase().includes('caldas') || query.state?.includes('Goi') ? '64' : '11'}) 9${Math.floor(
-            8000 + Math.random() * 1999,
-          )}-${Math.floor(1000 + Math.random() * 8999)}`;
+          addr['contact:mobile'] ||
+          addr['contact:whatsapp'] ||
+          (p.extratags &&
+            (p.extratags.phone ||
+              p.extratags['contact:phone'] ||
+              p.extratags['contact:mobile'] ||
+              p.extratags['contact:whatsapp'])) ||
+          null;
+
+        const phone = realPhone ? String(realPhone).trim() : null;
 
         // Chance de ter site ou sem site (para testar o score de prospecção)
         const hasSite = Math.random() > 0.65;

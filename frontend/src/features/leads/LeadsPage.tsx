@@ -104,6 +104,21 @@ export const LeadsPage: React.FC = () => {
     }
   };
 
+  const handleClearAllLeads = async () => {
+    if (
+      confirm(
+        'Deseja realmente apagar TODOS os leads cadastrados do banco de dados para iniciar uma nova captação limpa?',
+      )
+    ) {
+      try {
+        await leadService.clearAllLeads();
+        refetch();
+      } catch (err: any) {
+        alert(`Erro ao limpar leads: ${err.message}`);
+      }
+    }
+  };
+
   const statuses: LeadStatus[] = [
     'NOVO',
     'NAO_CONTATADO',
@@ -158,6 +173,15 @@ export const LeadsPage: React.FC = () => {
               <FileText className="w-4 h-4 text-slate-500" />
               <span>Exportar CSV</span>
             </a>
+
+            <button
+              onClick={handleClearAllLeads}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer"
+              title="Limpar todos os leads cadastrados no banco de dados"
+            >
+              <Trash2 className="w-4 h-4 text-rose-500" />
+              <span>Limpar Leads</span>
+            </button>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, ExternalLink, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, ExternalLink, HelpCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { Lead, MessageTemplate, WhatsAppStatus } from '../../types';
 import { Modal } from '../ui/Modal';
 import { messageService } from '../../services/message.service';
@@ -91,32 +91,49 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
     setIsOpen(false);
   };
 
-  if (!phone) {
+  // Se o lead não possui telefone ou foi classificado como NOT_FOUND (fixo ou sem WhatsApp)
+  if (!phone || lead.whatsappStatus === 'NOT_FOUND') {
+    if (variant === 'button') {
+      return (
+        <button
+          disabled
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 border border-slate-200 dark:border-slate-700 cursor-not-allowed"
+        >
+          <XCircle className="w-4 h-4 text-slate-400" />
+          <span>{!phone ? 'Sem Telefone' : 'Sem WhatsApp (Telefone Fixo)'}</span>
+        </button>
+      );
+    }
+
     return (
-      <span className="text-xs text-slate-400 italic">Sem telefone</span>
+      <span
+        title={!phone ? 'Empresa sem telefone cadastrado' : 'Telefone fixo ou número sem WhatsApp ativo'}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-500 dark:bg-slate-800/80 dark:text-slate-400 border border-slate-200 dark:border-slate-800 whitespace-nowrap shrink-0"
+      >
+        <XCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <span>Sem WhatsApp</span>
+      </span>
     );
   }
 
   return (
     <>
       {variant === 'table' && (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
           {/* Indicador de status de verificação */}
-          <span title={isVerified ? 'WhatsApp Verificado' : isUnknown ? 'Celular identificado (verificação não confirmada)' : 'Não possui WhatsApp'}>
+          <span title={isVerified ? 'WhatsApp Verificado' : 'Celular identificado (+55 com 9º dígito)'}>
             {isVerified ? (
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-            ) : isUnknown ? (
+            ) : (
               <span className="inline-flex items-center justify-center w-4 h-4 text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-600 rounded-full shrink-0">
                 ?
               </span>
-            ) : (
-              <span className="text-xs text-rose-500">✕</span>
             )}
           </span>
 
           <button
             onClick={handleOpenModal}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/80 transition-colors border border-emerald-200 dark:border-emerald-800 shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/80 transition-colors border border-emerald-200 dark:border-emerald-800 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
           >
             <MessageSquare className="w-3.5 h-3.5" />
             <span>WhatsApp</span>
