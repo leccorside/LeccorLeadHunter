@@ -344,42 +344,42 @@ export const LeadsPage: React.FC = () => {
                     </td>
 
                     {/* Site */}
-                    <td className="p-4">
+                    <td className="p-4 whitespace-nowrap">
                       {lead.hasWebsite ? (
                         <a
                           href={lead.website!}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-blue-600 hover:underline max-w-[120px] truncate"
+                          className="inline-flex items-center gap-1 text-blue-600 hover:underline max-w-[120px] truncate whitespace-nowrap"
                         >
                           <Globe className="w-3 h-3 shrink-0" />
-                          <span className="truncate">Visitar</span>
+                          <span className="truncate whitespace-nowrap">Visitar</span>
                         </a>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 whitespace-nowrap shrink-0">
                           Sem site
                         </span>
                       )}
                     </td>
 
                     {/* Avaliações & Nota */}
-                    <td className="p-4">
-                      <div className="flex items-center gap-1 text-amber-500 font-bold">
+                    <td className="p-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1 text-amber-500 font-bold whitespace-nowrap">
                         <Star className="w-3 h-3 fill-current" />
                         <span>{Number(lead.rating) || 0}</span>
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[10px] text-slate-400 whitespace-nowrap">
                         {lead.reviewCount || 0} avaliações
                       </div>
                     </td>
 
                     {/* Score */}
-                    <td className="p-4">
+                    <td className="p-4 whitespace-nowrap">
                       <ScoreBadge score={lead.score} size="sm" />
                     </td>
 
                     {/* Status */}
-                    <td className="p-4">
+                    <td className="p-4 whitespace-nowrap">
                       <StatusBadge status={lead.status} size="sm" />
                     </td>
 

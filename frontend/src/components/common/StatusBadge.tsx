@@ -75,10 +75,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-medium rounded-full border shadow-xs ${config.bg} ${sizeClasses[size]}`}
+      className={`inline-flex items-center gap-1.5 font-medium rounded-full border shadow-xs whitespace-nowrap shrink-0 ${config.bg} ${sizeClasses[size]}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-      {config.label}
+      <span className="whitespace-nowrap">{config.label}</span>
     </span>
   );
 };

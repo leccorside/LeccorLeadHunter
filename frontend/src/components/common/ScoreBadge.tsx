@@ -33,11 +33,11 @@ export const ScoreBadge: React.FC<ScoreBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-semibold rounded-full border shadow-sm ${bgColor} ${sizeClasses[size]}`}
+      className={`inline-flex items-center gap-1.5 font-semibold rounded-full border shadow-sm whitespace-nowrap shrink-0 ${bgColor} ${sizeClasses[size]}`}
       title={`Score de Oportunidade: ${score}/100 (${label})`}
     >
-      <span className="tabular-nums font-mono font-bold">{score}</span>
-      {showLabel && <span className="opacity-80 font-normal">({label})</span>}
+      <span className="tabular-nums font-mono font-bold whitespace-nowrap">{score}</span>
+      {showLabel && <span className="opacity-80 font-normal whitespace-nowrap">({label})</span>}
     </span>
   );
 };
