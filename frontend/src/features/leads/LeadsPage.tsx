@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  MapPin,
+  ExternalLink,
 } from 'lucide-react';
 import { leadService, LeadFilters } from '../../services/lead.service';
 import { categoryService } from '../../services/category.service';
@@ -290,6 +292,7 @@ export const LeadsPage: React.FC = () => {
                 <th className="p-4">Cidade</th>
                 <th className="p-4">Telefone</th>
                 <th className="p-4">WhatsApp</th>
+                <th className="p-4">Google Maps</th>
                 <th className="p-4">Site</th>
                 <th className="p-4">Avaliações</th>
                 <th className="p-4">Score</th>
@@ -301,14 +304,14 @@ export const LeadsPage: React.FC = () => {
               {isLoading ? (
                 [...Array(6)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={11} className="p-4">
+                    <td colSpan={12} className="p-4">
                       <div className="h-5 bg-slate-100 dark:bg-slate-800 rounded-md" />
                     </td>
                   </tr>
                 ))
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="p-8 text-center text-slate-400">
+                  <td colSpan={12} className="p-8 text-center text-slate-400">
                     Nenhuma empresa encontrada com os filtros selecionados.
                   </td>
                 </tr>
@@ -365,6 +368,31 @@ export const LeadsPage: React.FC = () => {
                         templates={templates}
                         onContactRecorded={refetch}
                       />
+                    </td>
+
+                    {/* Google Maps */}
+                    <td className="p-4 whitespace-nowrap">
+                      {(() => {
+                        const googleUrl =
+                          lead.googleMapsUrl ||
+                          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            `${lead.name} ${lead.city || ''} ${lead.state || ''}`.trim(),
+                          )}`;
+
+                        return (
+                          <a
+                            href={googleUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-rose-700 dark:text-rose-300 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900/50 transition-colors shadow-2xs"
+                            title={`Abrir ${lead.name} no Google Maps`}
+                          >
+                            <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                            <span>Ver no Maps</span>
+                            <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0" />
+                          </a>
+                        );
+                      })()}
                     </td>
 
                     {/* Site */}
