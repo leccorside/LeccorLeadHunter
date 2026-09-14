@@ -170,14 +170,21 @@ export class SearchProcessor extends WorkerHost {
           });
         }
 
-        // Regra B: normalizedPhone
-        if (!existingLead && phoneNorm.isValid) {
+        // Regra B: normalizedPhone (exceto números centrais/0800 compartilhados por redes e franquias)
+        const isTollFreeOrCentral =
+          phoneNorm.e164 &&
+          (phoneNorm.e164.startsWith('55800') ||
+            phoneNorm.e164.startsWith('550800') ||
+            phoneNorm.e164.startsWith('55300') ||
+            phoneNorm.e164.startsWith('55400'));
+        if (!existingLead && phoneNorm.isValid && !isTollFreeOrCentral) {
           existingLead = await this.prisma.lead.findFirst({
             where: {
               normalizedPhone: phoneNorm.e164,
             },
           });
         }
+
 
         // Regra C: website
         if (!existingLead && raw.website) {
