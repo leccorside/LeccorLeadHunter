@@ -13,7 +13,20 @@ export class OverpassProvider implements ISearchProvider {
 
   private getSearchTerms(cat?: string): string[] {
     if (!cat || cat === 'Todas as categorias' || cat === 'Comércio Local') {
-      return ['restaurante', 'hotel', 'loja', 'supermercado', 'bar', 'oficina', 'academia', 'farmacia'];
+      return [
+        'restaurante',
+        'oficina',
+        'academia',
+        'clinica',
+        'dentista',
+        'cabeleireiro',
+        'barbearia',
+        'pet shop',
+        'loja',
+        'hotel',
+        'supermercado',
+        'bar',
+      ];
     }
     const lower = cat.toLowerCase().trim();
     if (lower.startsWith('restaurante')) return ['restaurante'];

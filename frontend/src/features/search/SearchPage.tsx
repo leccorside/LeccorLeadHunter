@@ -237,6 +237,11 @@ export const SearchPage: React.FC = () => {
                 ))}
                 <option value="__custom__">+ Criar categoria personalizada...</option>
               </select>
+              {categoryName === 'Todas as categorias' && (
+                <p className="mt-1 text-[11px] text-blue-600 dark:text-blue-400">
+                  🎯 Busca multicaixas: prospectará estabelecimentos de múltiplos nichos (Restaurantes, Clínicas, Salões, Academias, Oficinas, etc.).
+                </p>
+              )}
             </div>
 
             {/* Raio Km */}
@@ -527,6 +532,27 @@ export const SearchPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Banner de Feedback ao Concluir */}
+          {isFinished && (
+            <div>
+              {(searchProgress?.newLeadsCount || 0) > 0 ? (
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    <strong>{searchProgress?.newLeadsCount} novos leads</strong> foram qualificados e adicionados com sucesso ao seu CRM!
+                  </span>
+                </div>
+              ) : (
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong>Nenhum lead novo inserido nesta busca.</strong> Os resultados encontrados foram descartados pelos filtros aplicados (como <em>Apenas com WhatsApp</em>, <em>Sem Site</em> ou notas mínimas) ou já estavam cadastrados. Tente relaxar alguns filtros na próxima busca para capturar mais oportunidades.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Ações */}
           <div className="flex items-center justify-between pt-2">

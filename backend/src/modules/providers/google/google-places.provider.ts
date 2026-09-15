@@ -6,6 +6,91 @@ import {
   SearchQuery,
 } from '../interfaces/search-provider.interface';
 
+export const GOOGLE_TYPE_TO_CATEGORY: Record<string, string> = {
+  restaurant: 'Restaurantes',
+  food: 'Restaurantes',
+  meal_delivery: 'Restaurantes',
+  meal_takeaway: 'Restaurantes',
+  cafe: 'Restaurantes',
+  bakery: 'Restaurantes',
+  bar: 'Bares',
+  night_club: 'Bares',
+  dentist: 'Dentistas',
+  dental_clinic: 'Dentistas',
+  doctor: 'Clínicas',
+  health: 'Clínicas',
+  hospital: 'Clínicas',
+  physiotherapist: 'Clínicas',
+  medical_lab: 'Clínicas',
+  pharmacy: 'Clínicas',
+  lawyer: 'Advogados',
+  legal_services: 'Advogados',
+  gym: 'Academias',
+  fitness_center: 'Academias',
+  beauty_salon: 'Salões de beleza',
+  hair_care: 'Salões de beleza',
+  hair_salon: 'Salões de beleza',
+  spa: 'Salões de beleza',
+  barber_shop: 'Barbearias',
+  supermarket: 'Mercados',
+  grocery_or_supermarket: 'Mercados',
+  convenience_store: 'Mercados',
+  store: 'Lojas',
+  clothing_store: 'Lojas',
+  shoe_store: 'Lojas',
+  furniture_store: 'Lojas',
+  home_goods_store: 'Lojas',
+  electronics_store: 'Lojas',
+  car_repair: 'Oficinas',
+  auto_repair: 'Oficinas',
+  car_dealer: 'Oficinas',
+  lodging: 'Hotéis',
+  hotel: 'Hotéis',
+  motel: 'Hotéis',
+  real_estate_agency: 'Imobiliárias',
+  accounting: 'Contadores',
+  veterinary_care: 'Veterinários',
+  pet_store: 'Pet Shops',
+  general_contractor: 'Construção',
+  roofing_contractor: 'Construção',
+  electrician: 'Eletricistas',
+  plumber: 'Encanadores',
+  school: 'Escolas',
+  primary_school: 'Escolas',
+  secondary_school: 'Escolas',
+  university: 'Cursos',
+};
+
+export function mapGoogleCategory(types?: string[], fallbackCategory?: string): string {
+  if (types && Array.isArray(types)) {
+    for (const type of types) {
+      const mapped = GOOGLE_TYPE_TO_CATEGORY[type.toLowerCase()];
+      if (mapped) return mapped;
+    }
+  }
+  if (
+    fallbackCategory &&
+    fallbackCategory !== 'Todas as categorias' &&
+    fallbackCategory !== 'Comércio Local'
+  ) {
+    return fallbackCategory;
+  }
+  return 'Lojas';
+}
+
+const DIVERSE_CATEGORIES = [
+  'Restaurantes',
+  'Salões de beleza',
+  'Clínicas',
+  'Dentistas',
+  'Academias',
+  'Oficinas mecânicas',
+  'Barbearias',
+  'Pet shops',
+  'Imobiliárias',
+  'Lojas',
+];
+
 @Injectable()
 export class GooglePlacesProvider implements ISearchProvider {
   readonly name = 'GOOGLE_PLACES';
@@ -34,17 +119,70 @@ export class GooglePlacesProvider implements ISearchProvider {
       return [];
     }
 
-    const categoryTerm = query.category || query.keyword || 'empresas';
-    const textQuery = `${categoryTerm} em ${query.city}, ${query.state}, ${query.country || 'Brasil'}`;
+    const isAllCategories =
+      !query.category ||
+      query.category === 'Todas as categorias' ||
+      query.category === 'Comércio Local';
+
     const maxResults = query.maxResults || 50;
 
-    this.logger.log(`Iniciando busca no Google Places: "${textQuery}"`);
+    // Quando o usuário seleciona "Todas as categorias", pesquisa nichos comerciais reais diversificados
+    if (isAllCategories) {
+      this.logger.log(
+        `Pesquisa ampla ("Todas as categorias") solicitada para ${query.city} - ${query.state}. Distribuindo busca entre principais nichos locais...`,
+      );
+
+      const allResults: RawLeadResult[] = [];
+      const seenIds = new Set<string>();
+      const perCatLimit = Math.max(5, Math.ceil(maxResults / DIVERSE_CATEGORIES.length));
+
+      for (const catName of DIVERSE_CATEGORIES) {
+        if (allResults.length >= maxResults) break;
+
+        const subQuery: SearchQuery = {
+          ...query,
+          category: catName,
+          maxResults: perCatLimit,
+        };
+
+        try {
+          const catResults = await this.searchSingleCategory(subQuery, apiKey, perCatLimit);
+          for (const r of catResults) {
+            if (!seenIds.has(r.providerPlaceId)) {
+              seenIds.add(r.providerPlaceId);
+              allResults.push(r);
+              if (allResults.length >= maxResults) break;
+            }
+          }
+        } catch (e: any) {
+          this.logger.warn(`Erro na busca do nicho ${catName}: ${e.message}`);
+        }
+      }
+
+      this.logger.log(
+        `Busca ampla concluída: ${allResults.length} empresas locais encontradas em múltiplos nichos.`,
+      );
+      return allResults;
+    }
+
+    return this.searchSingleCategory(query, apiKey, maxResults);
+  }
+
+  private async searchSingleCategory(
+    query: SearchQuery,
+    apiKey: string,
+    maxResults: number,
+  ): Promise<RawLeadResult[]> {
+    const categoryTerm = query.category || query.keyword || 'empresas locais';
+    const textQuery = `${categoryTerm} em ${query.city}, ${query.state}, ${query.country || 'Brasil'}`;
+
+    this.logger.log(`Iniciando busca no Google Places: "${textQuery}" (Limite: ${maxResults})`);
 
     // 1. TENTA PRIMEIRO VIA PLACES API (NEW) - Formato moderno e oficial do Google
     try {
       const resultsNew = await this.searchPlacesNew(textQuery, apiKey, maxResults, query);
       if (resultsNew && resultsNew.length > 0) {
-        this.logger.log(`Google Places (New) retornou ${resultsNew.length} resultados com dados oficiais.`);
+        this.logger.log(`Google Places (New) retornou ${resultsNew.length} resultados.`);
         return resultsNew;
       }
     } catch (newErr: any) {
@@ -116,7 +254,7 @@ export class GooglePlacesProvider implements ISearchProvider {
           provider: this.name,
           providerPlaceId: p.id || `google_${Math.random()}`,
           name,
-          category: query.category || (p.types && p.types[0]) || 'Comércio Local',
+          category: mapGoogleCategory(p.types, query.category),
           phone,
           website,
           hasWebsite: !!website,
@@ -184,7 +322,7 @@ export class GooglePlacesProvider implements ISearchProvider {
             provider: this.name,
             providerPlaceId: place.place_id,
             name: details?.name || place.name,
-            category: query.category || (place.types && place.types[0]),
+            category: mapGoogleCategory(place.types, query.category),
             phone: details?.formatted_phone_number || details?.international_phone_number,
             website: details?.website,
             hasWebsite: !!details?.website,

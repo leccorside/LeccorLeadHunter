@@ -242,7 +242,7 @@ export class SearchProcessor extends WorkerHost {
             .replace(/[\u0300-\u036f]/g, '')
             .replace(/[^a-z0-9]/g, '-');
 
-          const matchedCat = await this.prisma.category.findFirst({
+          let matchedCat = await this.prisma.category.findFirst({
             where: {
               OR: [
                 { slug: catSlug },
@@ -250,6 +250,27 @@ export class SearchProcessor extends WorkerHost {
               ],
             },
           });
+
+          if (
+            !matchedCat &&
+            raw.category &&
+            raw.category !== 'Todas as categorias' &&
+            raw.category !== 'Comércio Local'
+          ) {
+            try {
+              matchedCat = await this.prisma.category.create({
+                data: {
+                  name: raw.category,
+                  slug: catSlug,
+                  isCustom: true,
+                },
+              });
+            } catch {
+              matchedCat = await this.prisma.category.findFirst({
+                where: { slug: catSlug },
+              });
+            }
+          }
 
           if (matchedCat) {
             targetCategoryId = matchedCat.id;
