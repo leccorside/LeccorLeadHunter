@@ -106,5 +106,5 @@ export function buildWhatsAppLink(phone: string, message?: string): string {
   if (!normalized.isValid) return '';
 
   const encodedMessage = message ? encodeURIComponent(message) : '';
-  return `https://wa.me/${normalized.e164}${encodedMessage ? `?text=${encodedMessage}` : ''}`;
+  return `https://web.whatsapp.com/send?phone=${normalized.e164}${encodedMessage ? `&text=${encodedMessage}` : ''}`;
 }

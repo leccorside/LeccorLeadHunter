@@ -29,6 +29,16 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
   const isUnknown = lead.whatsappStatus === 'UNKNOWN';
   const isNotFound = lead.whatsappStatus === 'NOT_FOUND';
 
+  const formatWhatsAppWebLink = (targetPhone: string, text: string) => {
+    let digits = targetPhone.replace(/\D/g, '');
+    if (digits.startsWith('0')) digits = digits.substring(1);
+    if (!digits.startsWith('55') && (digits.length === 10 || digits.length === 11)) {
+      digits = `55${digits}`;
+    }
+    const encoded = encodeURIComponent(text);
+    return `https://web.whatsapp.com/send?phone=${digits}${encoded ? `&text=${encoded}` : ''}`;
+  };
+
   const handleOpenModal = async () => {
     if (!phone) return;
 
@@ -42,8 +52,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
     } else {
       // Mensagem padrão
       const defaultMsg = `Olá, tudo bem? Encontrei a ${lead.name} em ${lead.city || 'sua região'} e gostaria de falar sobre a presença digital da empresa.`;
-      const encoded = encodeURIComponent(defaultMsg);
-      const link = `https://wa.me/${phone}?text=${encoded}`;
+      const link = formatWhatsAppWebLink(phone, defaultMsg);
       setPreviewText(defaultMsg);
       setWhatsAppLink(link);
     }
@@ -54,7 +63,11 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
       setLoadingPreview(true);
       const preview = await messageService.getPreview(tmplId, lead.id);
       setPreviewText(preview.message);
-      setWhatsAppLink(preview.whatsAppLink);
+      let link = preview.whatsAppLink;
+      if (link && link.includes('wa.me/')) {
+        link = link.replace('https://wa.me/', 'https://web.whatsapp.com/send?phone=').replace('?text=', '&text=');
+      }
+      setWhatsAppLink(link || formatWhatsAppWebLink(phone, preview.message));
     } catch (e) {
       console.error('Erro ao gerar preview de WhatsApp:', e);
     } finally {
@@ -202,7 +215,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
           </div>
 
           <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300">
-            ⚠️ A conversa será aberta diretamente no seu WhatsApp Web ou aplicativo com a mensagem acima preenchida. O envio final é feito por você. O LeadHunter atualizará automaticamente o status do lead para <strong>CONTATADO</strong>.
+            ⚠️ A conversa será aberta diretamente no WhatsApp Web com a mensagem acima preenchida. O envio final é feito por você. O LeadHunter atualizará automaticamente o status do lead para <strong>CONTATADO</strong>.
           </div>
 
           {/* Ações */}
@@ -218,7 +231,7 @@ export const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
               className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md cursor-pointer"
             >
               <ExternalLink className="w-4 h-4" />
-              <span>Abrir no WhatsApp</span>
+              <span>Abrir no WhatsApp Web</span>
             </button>
           </div>
         </div>

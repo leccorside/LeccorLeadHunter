@@ -30,8 +30,8 @@ describe('PhoneNormalizer Utility', () => {
     expect(result.digits).toBe('');
   });
 
-  it('deve gerar link correto do WhatsApp com mensagem codificada', () => {
+  it('deve gerar link correto do WhatsApp Web com mensagem codificada', () => {
     const link = buildWhatsAppLink('(64) 99999-8888', 'Olá mundo!');
-    expect(link).toBe('https://wa.me/5564999998888?text=Ol%C3%A1%20mundo!');
+    expect(link).toBe('https://web.whatsapp.com/send?phone=5564999998888&text=Ol%C3%A1%20mundo!');
   });
 });
